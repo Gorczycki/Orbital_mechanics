@@ -1,1 +1,68 @@
-test
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moon Orbit Simulation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .form-group {
+            margin: 10px 0;
+        }
+        label {
+            font-weight: bold;
+        }
+        input {
+            padding: 5px;
+            font-size: 1rem;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Moon Orbit Simulation</h1>
+    <p>Please enter the initial conditions for the simulation:</p>
+
+    <div class="form-group">
+        <label for="initialX">Initial x pointing value:</label>
+        <input type="number" id="initialX" step="any" placeholder="Enter x direction">
+    </div>
+    
+    <div class="form-group">
+        <label for="initialY">Initial y pointing value:</label>
+        <input type="number" id="initialY" step="any" placeholder="Enter y direction">
+    </div>
+
+    <div class="form-group">
+        <label for="initialXR">Initial x distance in meters:</label>
+        <input type="number" id="initialXR" step="any" placeholder="Enter x distance">
+    </div>
+
+    <div class="form-group">
+        <label for="initialYR">Initial y distance in meters:</label>
+        <input type="number" id="initialYR" step="any" placeholder="Enter y distance">
+    </div>
+
+    <div class="form-group">
+        <label for="initialV">Initial velocity in m/s:</label>
+        <input type="number" id="initialV" step="any" placeholder="Enter initial velocity">
+    </div>
+
+    <button id="startBtn">Start Simulation</button>
+
+    <script src="simulation.js"></script>
+</body>
+</html>
+
