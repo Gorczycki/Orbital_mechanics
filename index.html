@@ -112,9 +112,8 @@
             let accel = calculateAcceleration(position.x, position.y, moonDistance);
             let prevAccel = accel;
 
-            // Store initial position
-            xValues.push(position.x / 1000); // Convert to kilometers
-            yValues.push(position.y / 1000); // Convert to kilometers
+            let localXValues = [];
+            let localYValues = [];
 
             // Simulate motion over time
             for (let i = 1; i < totalTime; i++) {
@@ -122,7 +121,7 @@
                 let newPosition = verletPosition(position, velocity, accel, timeStep);
                 let newDistance = Math.sqrt(newPosition.x * newPosition.x + newPosition.y * newPosition.y);
 
-                // Check if the moon collides with Earth (very basic check)
+                // Check if the moon collides with Earth (basic check)
                 if (newDistance <= earthRadius + moonRadius) {
                     console.log("Collision detected at:", newPosition);
                     break;
@@ -132,14 +131,18 @@
                 let newAccel = calculateAcceleration(newPosition.x, newPosition.y, newDistance);
                 let newVelocity = verletVelocity(velocity, newAccel, prevAccel, timeStep);
 
-                // Store the new values
                 position = newPosition;
                 velocity = newVelocity;
                 accel = newAccel;
 
-                xValues.push(position.x / 1000); // Convert to kilometers
-                yValues.push(position.y / 1000); // Convert to kilometers
+                // Downsample: Store only every 100th point
+                if (i % 100 === 0) {
+                    localXValues.push(position.x / 1000); // Convert to kilometers
+                    localYValues.push(position.y / 1000); // Convert to kilometers
+                }
             }
+
+            return { x: localXValues, y: localYValues };
         }
 
         // Start the simulation
@@ -156,7 +159,7 @@
             yValues = [];
 
             // Simulate the trajectory
-            simulateTrajectory();
+            const { x: downsampledX, y: downsampledY } = simulateTrajectory();
 
             // Diameter of Earth in kilometers and Moon's distance
             const earthDiameter = (2 * 6378137) / 1000; // Earth's diameter in km
@@ -173,8 +176,8 @@
             };
 
             const trace2 = {
-                x: xValues,
-                y: yValues,
+                x: downsampledX,
+                y: downsampledY,
                 mode: 'lines+markers',
                 type: 'scatter',
                 marker: { color: 'white', size: 5 },
@@ -200,24 +203,23 @@
                 font: { color: 'white' },
             };
 
-            // Combine traces into a data array
             const data = [trace1, trace2];
-
-            // Plot the data
             Plotly.newPlot('plot', data, layout).then(function(gd) {
-                // Animation setup
                 let frameIndex = 0;
-                const interval = setInterval(function() {
-                    if (frameIndex < xValues.length) {
+
+                // Use requestAnimationFrame for smooth animations
+                function animate() {
+                    if (frameIndex < downsampledX.length) {
                         Plotly.update(gd, {
-                            x: [[xValues[frameIndex]]],
-                            y: [[yValues[frameIndex]]],
+                            x: [[downsampledX[frameIndex]]],
+                            y: [[downsampledY[frameIndex]]],
                         }, {}, [1]);  // Update only the moon trajectory trace
                         frameIndex++;
-                    } else {
-                        clearInterval(interval);  // Stop animation when done
+                        requestAnimationFrame(animate); // Continue the animation
                     }
-                }, 50);  // Update every 50 ms (you can adjust the speed)
+                }
+
+                requestAnimationFrame(animate); // Start the animation
             });
         }
     </script>
