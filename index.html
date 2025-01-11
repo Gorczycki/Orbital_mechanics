@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moon Orbit Visualizer</title>
+    <title>Moon Orbit Simulation</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>
         body {
@@ -52,18 +52,19 @@
         <input type="number" id="initialVelocity" value="1023.056" class="control-input">
         
         <button onclick="startSimulation()">Start Simulation</button>
+        <button onclick="downloadCSV()">Download CSV</button>
     </div>
 
     <script>
-        // Gravitational constant and Earth parameters
         const G = 6.67430e-11;    // Gravitational constant (m^3 kg^-1 s^-2)
         const earthMass = 5.9722e24; // Earth's mass (kg)
-        const earthRadius = 6371;  // Earth's radius in km
-        const moonRadius = 1737;   // Moon's radius in km
+        const earthRadius = 6371e3;  // Earth's radius in meters
+        const moonRadius = 1737e3;   // Moon's radius in meters
         let timeStep = 10;         // Time step for simulation (in seconds)
-
-        let moonPosX, moonPosY, moonVelX, moonVelY;  // Variables for moon's position and velocity
-        let trajectoryData = [];  // Store trajectory data for visualization
+        let timeFrame = 1000000;   // Simulation time frame
+        let trajectoryData = [];   // Store trajectory data for CSV
+        let velocities = [];       // Store velocity data
+        let positions = [];        // Store position data
 
         // Unit vector calculation (normalization)
         function normalizeVector(x, y) {
@@ -71,93 +72,147 @@
             return { x: x / magnitude, y: y / magnitude };
         }
 
-        // Gravitational force calculation
-        function calculateGravitationalForce(x, y) {
-            let r = Math.sqrt(x * x + y * y);  // Distance from Earth to Moon
-            return (G * earthMass) / (r * r);   // F = G * (M / r^2)
+        // Gravitational acceleration calculation
+        function calculateAcceleration(x, y, distance) {
+            let force = -G * earthMass / Math.pow(distance, 3);
+            return { x: force * x, y: force * y };
+        }
+
+        // Verlet Position Update
+        function verletPosition(pos, vel, accel, dt) {
+            let newPos = {
+                x: pos.x + vel.x * dt + 0.5 * accel.x * Math.pow(dt, 2),
+                y: pos.y + vel.y * dt + 0.5 * accel.y * Math.pow(dt, 2),
+            };
+            return newPos;
+        }
+
+        // Verlet Velocity Update
+        function verletVelocity(vel, accel, prevAccel, dt) {
+            let newVel = {
+                x: vel.x + 0.5 * (accel.x + prevAccel.x) * dt,
+                y: vel.y + 0.5 * (accel.y + prevAccel.y) * dt,
+            };
+            return newVel;
         }
 
         function startSimulation() {
-            // Get input values
+            // Get user input values
             let initialDirectionX = parseFloat(document.getElementById('initialDirectionX').value);
             let initialDirectionY = parseFloat(document.getElementById('initialDirectionY').value);
             let initialPosX = parseFloat(document.getElementById('initialPosX').value);
             let initialPosY = parseFloat(document.getElementById('initialPosY').value);
             let initialVelocity = parseFloat(document.getElementById('initialVelocity').value);
 
-            // Normalize direction to get the unit vector
+            // Normalize the initial direction
             let unitDirection = normalizeVector(initialDirectionX, initialDirectionY);
 
-            // Initial position and velocity vectors (with direction scaled by velocity)
-            moonPosX = initialPosX;
-            moonPosY = initialPosY;
-            moonVelX = unitDirection.x * initialVelocity;
-            moonVelY = unitDirection.y * initialVelocity;
+            // Initial position and velocity vectors (scaled by velocity)
+            let initialPosition = { x: initialPosX, y: initialPosY };
+            let initialVelocityVector = { x: unitDirection.x * initialVelocity, y: unitDirection.y * initialVelocity };
+
+            // Calculate initial acceleration
+            let distance = Math.sqrt(initialPosX * initialPosX + initialPosY * initialPosY);
+            let initialAccel = calculateAcceleration(initialPosX, initialPosY, distance);
+
+            // Initial values for simulation
+            let velocity = initialVelocityVector;
+            let position = initialPosition;
+            let accel = initialAccel;
 
             // Clear previous trajectory data
             trajectoryData = [];
+            velocities = [];
+            positions = [];
+
+            // Store initial values
+            positions.push(position);
+            velocities.push(velocity);
+            trajectoryData.push([position.x, position.y]);
 
             // Run the simulation
-            runOrbitSimulation();
-        }
+            for (let i = 1; i < timeFrame; i++) {
+                // Update position and velocity
+                let newPosition = verletPosition(position, velocity, accel, timeStep);
+                let newDistance = Math.sqrt(newPosition.x * newPosition.x + newPosition.y * newPosition.y);
 
-        function runOrbitSimulation() {
-            trajectoryData = [];  // Clear previous data
-            let steps = 1000; // Number of simulation steps
-
-            // Simulate orbit for a given number of steps
-            for (let i = 0; i < steps; i++) {
-                let force = calculateGravitationalForce(moonPosX, moonPosY);
-
-                // Update velocity based on gravitational acceleration
-                moonVelX -= force * moonPosX / Math.sqrt(moonPosX * moonPosX + moonPosY * moonPosY);
-                moonVelY -= force * moonPosY / Math.sqrt(moonPosX * moonPosX + moonPosY * moonPosY);
-
-                // Update position
-                moonPosX += moonVelX * timeStep;
-                moonPosY += moonVelY * timeStep;
-
-                // Store the new position in the trajectory data
-                trajectoryData.push([moonPosX, moonPosY]);
-
-                // Visualize the trajectory in real-time
-                if (i % 10 === 0) {  // Update the canvas every 10 iterations for smoother animation
-                    drawTrajectory(trajectoryData);
+                // Check for collision with Earth
+                if (newDistance <= earthRadius + moonRadius) {
+                    console.log("Collision detected at:", newPosition);
+                    break;
                 }
+
+                // Update acceleration and velocity
+                let newAccel = calculateAcceleration(newPosition.x, newPosition.y, newDistance);
+                let newVelocity = verletVelocity(velocity, newAccel, accel, timeStep);
+
+                // Store the new values
+                position = newPosition;
+                velocity = newVelocity;
+                accel = newAccel;
+
+                positions.push(position);
+                velocities.push(velocity);
+                trajectoryData.push([position.x, position.y]);
             }
+
+            // Redraw the canvas and plot the trajectory
+            drawTrajectory();
         }
 
-        function drawTrajectory(data) {
-            // Clear the previous frame
+        function drawTrajectory() {
+            // Clear previous frame
             clear();
             background(0);
 
-            // Scale factor to adjust the positions for the canvas size
-            const scale = 0.005;  // You can adjust this scale as needed
+            const scale = 0.00000005;  // Scale factor to adjust positions
             const canvasCenterX = width / 2;
             const canvasCenterY = height / 2;
 
-            // Draw the Earth (as a small circle at the center)
-            fill(0, 0, 255);  // Earth color (blue)
+            // Draw Earth (blue circle)
+            fill(0, 0, 255);
             ellipse(canvasCenterX, canvasCenterY, earthRadius * 2 * scale, earthRadius * 2 * scale);
 
-            // Draw the Moon trajectory (Red color)
+            // Draw the Moon's trajectory (red dots)
             fill(255, 0, 0);
-            for (let i = 0; i < data.length; i++) {
-                let [x, y] = data[i];
-                let canvasX = x * scale + canvasCenterX;
-                let canvasY = y * scale + canvasCenterY;
-                ellipse(canvasX, canvasY, 5, 5);  // Draw the moon as a small red dot
+            for (let i = 0; i < trajectoryData.length; i++) {
+                let x = trajectoryData[i][0];
+                let y = trajectoryData[i][1];
+                ellipse(x * scale + canvasCenterX, y * scale + canvasCenterY, 5, 5);
             }
         }
 
+        function downloadCSV() {
+            // Create a CSV string from the trajectory data
+            let csvContent = "x, y\n";
+            trajectoryData.forEach(function (row) {
+                csvContent += row.join(", ") + "\n";
+            });
+
+            // Create a Blob for the CSV file
+            let blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            let link = document.createElement("a");
+            if (link.download !== undefined) {
+                // Create a downloadable link
+                let url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", "moon_trajectory.csv");
+                link.click();
+            }
+        }
+
+        // Initialize p5.js canvas and drawing
         function setup() {
             createCanvas(windowWidth, windowHeight);
-            noStroke();
+        }
+        
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
         }
     </script>
 </body>
 </html>
+
 
 
 
