@@ -14,6 +14,8 @@ vector<double> verlet_position(vector<double> coordinates_m, vector<double> velo
 vector<double> acceleration(long double earth_mass_kg, long double gravit_constant, double moon_radius_distance_m, vector<double> coordinates_m);
 vector<double> verlet_velocity(vector<double> velocity_vector_mS, vector<double> accel, vector<double> accelerations, double time_delta);
 
+//https://gorczycki.github.io/Orbital_mechanics/
+
 int main()
 {
     long double earth_mass_kg = 5.9722E24L;
@@ -30,16 +32,40 @@ int main()
     vector<vector<double>> accelerations;
 
     //initial direction, coordinates, hypotenuse(magnitude of distance)
-    vector<double> initial_direction = {0,-1};
+    double initial_x;
+    double initial_y;
+    cout<<"Please give initial x and y pointing values "<<endl;
+    cout<<"x: ";
+    cin>>initial_x;
+    cout<<endl;
+    cout<<"y: ";
+    cin>>initial_y;
+
+    vector<double> initial_direction = {initial_x,initial_y};
     vector<double> direction_current = initial_direction;
     vector<double> unit_direction = unit_vector(direction_current); 
-    vector<double> initial_coordinates_m = {384400000, 0};
+
+    double initial_x_r;
+    double initial_y_r;
+    cout<<"Please give initial x,y distance in meters(moon's average radius is 384400000) "<<endl;
+    cout<<"x distance: ";
+    cin>>initial_x_r;
+    cout<<endl;
+    cout<<"y distance: ";
+    cin>>initial_y_r;
+
+    //vector<double> initial_coordinates_m = {384400000, 0};
+    vector<double> initial_coordinates_m = {initial_x_r, initial_y_r};
     vector<double> coordinates_m = initial_coordinates_m;
     //double moon_radius_distance_m = unit_magnitude(coordinates_m);
     double moon_radius_distance_m = sqrt(pow(coordinates_m[0], 2) + pow(coordinates_m[1], 2));
 
     //inital velocity, initial velocity with direction as scalar
-    double initial_velocity_mS = 1023.056;
+    double initial_v;
+    cout<<"Please give initial velocity in m/S(moon's average velocity is 1023.056 m/S)"<<endl;
+    cout<<"velocity: ";
+    cin>>initial_v;
+    double initial_velocity_mS = initial_v;
     //double initial_velocity_mS = 2000;
     vector<double> initial_velocity_vector_mS = {unit_direction[0] * initial_velocity_mS, unit_direction[1] * initial_velocity_mS};
     vector<double> velocity_vector_mS = initial_velocity_vector_mS;
