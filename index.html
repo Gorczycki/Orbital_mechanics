@@ -29,18 +29,28 @@
             margin-bottom: 5px;
             display: block;
         }
+        input, button {
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="controls">
-        <label for="initialPosX" class="control-label">Initial X Position (km):</label>
-        <input type="number" id="initialPosX" value="384400" class="control-input">
-        <label for="initialPosY" class="control-label">Initial Y Position (km):</label>
+        <label for="initialDirectionX" class="control-label">Initial X Direction:</label>
+        <input type="number" id="initialDirectionX" value="1" class="control-input">
+        
+        <label for="initialDirectionY" class="control-label">Initial Y Direction:</label>
+        <input type="number" id="initialDirectionY" value="0" class="control-input">
+        
+        <label for="initialPosX" class="control-label">Initial X Position (meters):</label>
+        <input type="number" id="initialPosX" value="384400000" class="control-input">
+        
+        <label for="initialPosY" class="control-label">Initial Y Position (meters):</label>
         <input type="number" id="initialPosY" value="0" class="control-input">
-        <label for="initialVelX" class="control-label">Initial Velocity X (m/s):</label>
-        <input type="number" id="initialVelX" value="0" class="control-input">
-        <label for="initialVelY" class="control-label">Initial Velocity Y (m/s):</label>
-        <input type="number" id="initialVelY" value="1.023" class="control-input">
+        
+        <label for="initialVelocity" class="control-label">Initial Velocity (m/s):</label>
+        <input type="number" id="initialVelocity" value="1023.056" class="control-input">
+        
         <button onclick="startSimulation()">Start Simulation</button>
     </div>
 
@@ -53,7 +63,15 @@
         let timeStep = 10;         // Time step for simulation (in seconds)
 
         let moonPosX, moonPosY, moonVelX, moonVelY;  // Variables for moon's position and velocity
+        let trajectoryData = [];  // Store trajectory data for visualization
 
+        // Unit vector calculation (normalization)
+        function normalizeVector(x, y) {
+            let magnitude = Math.sqrt(x * x + y * y);
+            return { x: x / magnitude, y: y / magnitude };
+        }
+
+        // Gravitational force calculation
         function calculateGravitationalForce(x, y) {
             let r = Math.sqrt(x * x + y * y);  // Distance from Earth to Moon
             return (G * earthMass) / (r * r);   // F = G * (M / r^2)
@@ -61,12 +79,22 @@
 
         function startSimulation() {
             // Get input values
-            moonPosX = parseFloat(document.getElementById('initialPosX').value);
-            moonPosY = parseFloat(document.getElementById('initialPosY').value);
-            moonVelX = parseFloat(document.getElementById('initialVelX').value);
-            moonVelY = parseFloat(document.getElementById('initialVelY').value);
+            let initialDirectionX = parseFloat(document.getElementById('initialDirectionX').value);
+            let initialDirectionY = parseFloat(document.getElementById('initialDirectionY').value);
+            let initialPosX = parseFloat(document.getElementById('initialPosX').value);
+            let initialPosY = parseFloat(document.getElementById('initialPosY').value);
+            let initialVelocity = parseFloat(document.getElementById('initialVelocity').value);
 
-            // Clear any previous trajectory data
+            // Normalize direction to get the unit vector
+            let unitDirection = normalizeVector(initialDirectionX, initialDirectionY);
+
+            // Initial position and velocity vectors (with direction scaled by velocity)
+            moonPosX = initialPosX;
+            moonPosY = initialPosY;
+            moonVelX = unitDirection.x * initialVelocity;
+            moonVelY = unitDirection.y * initialVelocity;
+
+            // Clear previous trajectory data
             trajectoryData = [];
 
             // Run the simulation
@@ -105,7 +133,7 @@
             background(0);
 
             // Scale factor to adjust the positions for the canvas size
-            const scale = 0.00005;  // You can adjust this scale as needed
+            const scale = 0.00000005;  // You can adjust this scale as needed
             const canvasCenterX = width / 2;
             const canvasCenterY = height / 2;
 
@@ -130,5 +158,6 @@
     </script>
 </body>
 </html>
+
 
 
