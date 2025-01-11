@@ -163,45 +163,49 @@
 
             // Diameter of Earth in kilometers and Moon's distance
             const earthDiameter = (2 * 6378137) / 1000; // Earth's diameter in km
-            const earthMarkerSize = (earthDiameter / moonDistance) * 100000; // Scale factor
+            // Increase Earth marker size scaling factor for visibility
+const earthMarkerSize = (earthDiameter / moonDistance) * 200000; // Larger Earth marker size
 
-            // Plotly data structure
-            const trace1 = {
-                x: [0],  // Earth at the origin (0,0)
-                y: [0],
-                mode: 'markers',
-                type: 'scatter',
-                marker: { color: 'green', size: earthMarkerSize },
-                name: 'Earth (scaled)',
-            };
+// Set a fixed size for the Moon marker for better visibility
+const moonMarkerSize = 20000;  // You can adjust this value to make the Moon larger
 
-            const trace2 = {
-                x: downsampledX,
-                y: downsampledY,
-                mode: 'lines+markers',
-                type: 'scatter',
-                marker: { color: 'white', size: 5 },
-                name: 'Moon Trajectory',
-            };
+// Plotly data structure
+const trace1 = {
+    x: [0],  // Earth at the origin (0,0)
+    y: [0],
+    mode: 'markers',
+    type: 'scatter',
+    marker: { color: 'green', size: earthMarkerSize },
+    name: 'Earth (scaled)',
+};
 
-            // Layout settings
-            const layout = {
-                title: 'Moon Trajectory Over Time',
-                xaxis: {
-                    title: 'X (km)',
-                    showgrid: true,
-                    zeroline: true,
-                },
-                yaxis: {
-                    title: 'Y (km)',
-                    showgrid: true,
-                    zeroline: true,
-                },
-                plot_bgcolor: 'black',
-                paper_bgcolor: 'black',
-                showlegend: true,
-                font: { color: 'white' },
-            };
+const trace2 = {
+    x: xValues,
+    y: yValues,
+    mode: 'lines+markers',
+    type: 'scatter',
+    marker: { color: 'white', size: moonMarkerSize }, // Adjusted Moon marker size
+    name: 'Moon Trajectory',
+};
+
+// Layout settings
+const layout = {
+    title: 'Moon Trajectory Over Time',
+    xaxis: {
+        title: 'X (km)',
+        showgrid: true,
+        zeroline: true,
+    },
+    yaxis: {
+        title: 'Y (km)',
+        showgrid: true,
+        zeroline: true,
+    },
+    plot_bgcolor: 'black',
+    paper_bgcolor: 'black',
+    showlegend: true,
+    font: { color: 'white' },
+};
 
             const data = [trace1, trace2];
             Plotly.newPlot('plot', data, layout).then(function(gd) {
