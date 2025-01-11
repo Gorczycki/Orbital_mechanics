@@ -38,6 +38,21 @@
 <body>
 
     <div class="controls">
+        <label for="initialDirectionX" class="control-label">Initial X Direction:</label>
+        <input type="number" id="initialDirectionX" value="1" class="control-input">
+        
+        <label for="initialDirectionY" class="control-label">Initial Y Direction:</label>
+        <input type="number" id="initialDirectionY" value="0" class="control-input">
+        
+        <label for="initialPosX" class="control-label">Initial X Position (meters):</label>
+        <input type="number" id="initialPosX" value="384400000" class="control-input">
+        
+        <label for="initialPosY" class="control-label">Initial Y Position (meters):</label>
+        <input type="number" id="initialPosY" value="0" class="control-input">
+        
+        <label for="initialVelocity" class="control-label">Initial Velocity (m/s):</label>
+        <input type="number" id="initialVelocity" value="1023.056" class="control-input">
+        
         <button onclick="startSimulation()">Start Simulation</button>
     </div>
 
@@ -51,16 +66,14 @@
         const moonDistance = 384400000; // Moon's average distance from Earth (meters)
 
         const timeStep = 10; // Time step for simulation (in seconds)
-        const totalTime = 1000000; // Total simulation time (in seconds)
+        const totalTime = 10000000; // Total simulation time (in seconds)
         let xValues = [];
         let yValues = [];
 
-        // Initial conditions (position, velocity, direction)
-        const initialPosX = 384400000; // Initial X position (meters)
-        const initialPosY = 0; // Initial Y position (meters)
-        const initialVelocity = 1023.056; // Initial velocity (m/s)
-        const initialDirectionX = 1; // Initial X direction (normalized)
-        const initialDirectionY = 0; // Initial Y direction (normalized)
+        // Initial conditions (to be set by user input)
+        let initialDirectionX, initialDirectionY;
+        let initialPosX, initialPosY;
+        let initialVelocity;
 
         // Normalize the initial direction
         function normalizeVector(x, y) {
@@ -92,8 +105,10 @@
 
         // Simulate the trajectory of the Moon
         function simulateTrajectory() {
+            let unitDirection = normalizeVector(initialDirectionX, initialDirectionY);
+
             let position = { x: initialPosX, y: initialPosY };
-            let velocity = { x: initialDirectionX * initialVelocity, y: initialDirectionY * initialVelocity };
+            let velocity = { x: unitDirection.x * initialVelocity, y: unitDirection.y * initialVelocity };
             let accel = calculateAcceleration(position.x, position.y, moonDistance);
             let prevAccel = accel;
 
@@ -129,6 +144,18 @@
 
         // Start the simulation
         function startSimulation() {
+            // Get user input values
+            initialDirectionX = parseFloat(document.getElementById('initialDirectionX').value);
+            initialDirectionY = parseFloat(document.getElementById('initialDirectionY').value);
+            initialPosX = parseFloat(document.getElementById('initialPosX').value);
+            initialPosY = parseFloat(document.getElementById('initialPosY').value);
+            initialVelocity = parseFloat(document.getElementById('initialVelocity').value);
+
+            // Reset the data arrays
+            xValues = [];
+            yValues = [];
+
+            // Simulate the trajectory
             simulateTrajectory();
 
             // Diameter of Earth in kilometers and Moon's distance
@@ -197,6 +224,8 @@
 
 </body>
 </html>
+
+
 
 
 
