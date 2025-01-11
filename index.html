@@ -165,7 +165,7 @@
             clear();
             background(0);
 
-            const scale = 0.0005;  // Scale factor to adjust positions
+            const scale = 0.005;  // Scale factor to adjust positions
             const canvasCenterX = width / 2;
             const canvasCenterY = height / 2;
 
@@ -178,7 +178,7 @@
             for (let i = 0; i < trajectoryData.length; i++) {
                 let x = trajectoryData[i][0];
                 let y = trajectoryData[i][1];
-                ellipse(x * scale + canvasCenterX, y * scale + canvasCenterY, 50, 50);
+                ellipse(x * scale + canvasCenterX, y * scale + canvasCenterY, 10, 10);
             }
         }
 
