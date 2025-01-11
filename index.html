@@ -3,66 +3,132 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Moon Orbit Simulation</title>
+    <title>Moon Orbit Visualizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .form-group {
-            margin: 10px 0;
-        }
-        label {
-            font-weight: bold;
-        }
-        input {
-            padding: 5px;
-            font-size: 1rem;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #4CAF50;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: black;
             color: white;
-            font-size: 1rem;
-            cursor: pointer;
         }
-        button:hover {
-            background-color: #45a049;
+        canvas {
+            display: block;
+        }
+        .controls {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 10;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .control-label {
+            margin-bottom: 5px;
+            display: block;
         }
     </style>
 </head>
 <body>
-    <h1>Moon Orbit Simulation</h1>
-    <p>Please enter the initial conditions for the simulation:</p>
-
-    <div class="form-group">
-        <label for="initialX">Initial x pointing value:</label>
-        <input type="number" id="initialX" step="any" placeholder="Enter x direction">
-    </div>
-    
-    <div class="form-group">
-        <label for="initialY">Initial y pointing value:</label>
-        <input type="number" id="initialY" step="any" placeholder="Enter y direction">
-    </div>
-
-    <div class="form-group">
-        <label for="initialXR">Initial x distance in meters:</label>
-        <input type="number" id="initialXR" step="any" placeholder="Enter x distance">
+    <div class="controls">
+        <label for="initialPosX" class="control-label">Initial X Position (km):</label>
+        <input type="number" id="initialPosX" value="384400" class="control-input">
+        <label for="initialPosY" class="control-label">Initial Y Position (km):</label>
+        <input type="number" id="initialPosY" value="0" class="control-input">
+        <label for="initialVelX" class="control-label">Initial Velocity X (m/s):</label>
+        <input type="number" id="initialVelX" value="0" class="control-input">
+        <label for="initialVelY" class="control-label">Initial Velocity Y (m/s):</label>
+        <input type="number" id="initialVelY" value="1.023" class="control-input">
+        <button onclick="startSimulation()">Start Simulation</button>
     </div>
 
-    <div class="form-group">
-        <label for="initialYR">Initial y distance in meters:</label>
-        <input type="number" id="initialYR" step="any" placeholder="Enter y distance">
-    </div>
+    <script>
+        // Gravitational constant and Earth parameters
+        const G = 6.67430e-11;    // Gravitational constant (m^3 kg^-1 s^-2)
+        const earthMass = 5.9722e24; // Earth's mass (kg)
+        const earthRadius = 6371;  // Earth's radius in km
+        const moonRadius = 1737;   // Moon's radius in km
+        let timeStep = 10;         // Time step for simulation (in seconds)
 
-    <div class="form-group">
-        <label for="initialV">Initial velocity in m/s:</label>
-        <input type="number" id="initialV" step="any" placeholder="Enter initial velocity">
-    </div>
+        let moonPosX, moonPosY, moonVelX, moonVelY;  // Variables for moon's position and velocity
 
-    <button id="startBtn">Start Simulation</button>
+        function calculateGravitationalForce(x, y) {
+            let r = Math.sqrt(x * x + y * y);  // Distance from Earth to Moon
+            return (G * earthMass) / (r * r);   // F = G * (M / r^2)
+        }
 
-    <script src="simulation.js"></script>
+        function startSimulation() {
+            // Get input values
+            moonPosX = parseFloat(document.getElementById('initialPosX').value);
+            moonPosY = parseFloat(document.getElementById('initialPosY').value);
+            moonVelX = parseFloat(document.getElementById('initialVelX').value);
+            moonVelY = parseFloat(document.getElementById('initialVelY').value);
+
+            // Clear any previous trajectory data
+            trajectoryData = [];
+
+            // Run the simulation
+            runOrbitSimulation();
+        }
+
+        function runOrbitSimulation() {
+            trajectoryData = [];  // Clear previous data
+            let steps = 1000; // Number of simulation steps
+
+            // Simulate orbit for a given number of steps
+            for (let i = 0; i < steps; i++) {
+                let force = calculateGravitationalForce(moonPosX, moonPosY);
+
+                // Update velocity based on gravitational acceleration
+                moonVelX -= force * moonPosX / Math.sqrt(moonPosX * moonPosX + moonPosY * moonPosY);
+                moonVelY -= force * moonPosY / Math.sqrt(moonPosX * moonPosX + moonPosY * moonPosY);
+
+                // Update position
+                moonPosX += moonVelX * timeStep;
+                moonPosY += moonVelY * timeStep;
+
+                // Store the new position in the trajectory data
+                trajectoryData.push([moonPosX, moonPosY]);
+
+                // Visualize the trajectory in real-time
+                if (i % 10 === 0) {  // Update the canvas every 10 iterations for smoother animation
+                    drawTrajectory(trajectoryData);
+                }
+            }
+        }
+
+        function drawTrajectory(data) {
+            // Clear the previous frame
+            clear();
+            background(0);
+
+            // Scale factor to adjust the positions for the canvas size
+            const scale = 0.00005;  // You can adjust this scale as needed
+            const canvasCenterX = width / 2;
+            const canvasCenterY = height / 2;
+
+            // Draw the Earth (as a small circle at the center)
+            fill(0, 0, 255);  // Earth color (blue)
+            ellipse(canvasCenterX, canvasCenterY, earthRadius * 2 * scale, earthRadius * 2 * scale);
+
+            // Draw the Moon trajectory (Red color)
+            fill(255, 0, 0);
+            for (let i = 0; i < data.length; i++) {
+                let [x, y] = data[i];
+                let canvasX = x * scale + canvasCenterX;
+                let canvasY = y * scale + canvasCenterY;
+                ellipse(canvasX, canvasY, 5, 5);  // Draw the moon as a small red dot
+            }
+        }
+
+        function setup() {
+            createCanvas(windowWidth, windowHeight);
+            noStroke();
+        }
+    </script>
 </body>
 </html>
+
 
