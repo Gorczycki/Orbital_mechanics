@@ -161,26 +161,26 @@
         }
 
         function drawTrajectory() {
-            // Clear previous frame
-            clear();
-            background(0);
+    // Clear previous frame (only the canvas, not the whole page)
+    clear(); 
+    background(0);  // Set the background to black (for the canvas area)
 
-            const scale = 0.5;  // Scale factor to adjust positions
-            const canvasCenterX = width / 2;
-            const canvasCenterY = height / 2;
+    const scale = 0.5;  // Scale factor to adjust positions
+    const canvasCenterX = width / 2;
+    const canvasCenterY = height / 2;
 
-            // Draw Earth (blue circle)
-            fill(0, 0, 255);
-            ellipse(canvasCenterX, canvasCenterY, earthRadius * 2 * scale, earthRadius * 2 * scale);
+    // Draw Earth (blue circle)
+    fill(0, 0, 255);  // Blue color for Earth
+    ellipse(canvasCenterX, canvasCenterY, earthRadius * 2 * scale, earthRadius * 2 * scale);
 
-            // Draw the Moon's trajectory (red dots)
-            fill(255, 0, 0);
-            for (let i = 0; i < trajectoryData.length; i++) {
-                let x = trajectoryData[i][0];
-                let y = trajectoryData[i][1];
-                ellipse(x * scale + canvasCenterX, y * scale + canvasCenterY, 10, 10);
-            }
-        }
+    // Draw the Moon's trajectory (red dots)
+    fill(255, 0, 0);  // Red color for the trajectory points
+    for (let i = 0; i < trajectoryData.length; i++) {
+        let x = trajectoryData[i][0];
+        let y = trajectoryData[i][1];
+        ellipse(x * scale + canvasCenterX, y * scale + canvasCenterY, 10, 10);
+    }
+}
 
         function downloadCSV() {
             // Create a CSV string from the trajectory data
