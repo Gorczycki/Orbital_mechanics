@@ -15,7 +15,8 @@
         }
         #plot {
             width: 100%;
-            height: 100vh;
+            height: calc(100vh - 50px); /* Leave space for controls */
+            margin-top: 50px;  /* Ensure the controls don’t overlap */
         }
         .controls {
             position: absolute;
@@ -23,8 +24,9 @@
             left: 20px;
             z-index: 10;
             background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 5px;
+            padding: 15px;
+            border-radius: 10px;
+            width: 250px;
         }
         .control-label {
             margin-bottom: 5px;
@@ -32,6 +34,7 @@
         }
         input, button {
             margin-bottom: 10px;
+            width: 100%;
         }
     </style>
 </head>
@@ -164,48 +167,50 @@
             // Diameter of Earth in kilometers and Moon's distance
             const earthDiameter = (2 * 6378137) / 1000; // Earth's diameter in km
             // Increase Earth marker size scaling factor for visibility
-const earthMarkerSize = (earthDiameter / moonDistance) * 200000; // Larger Earth marker size
+            const earthMarkerSize = (earthDiameter / moonDistance) * 200000; // Larger Earth marker size
 
-// Set a fixed size for the Moon marker for better visibility
-const moonMarkerSize = 20;  // You can adjust this value to make the Moon larger
+            // Set a fixed size for the Moon marker for better visibility
+            const moonMarkerSize = 20;  // You can adjust this value to make the Moon larger
 
-// Plotly data structure
-const trace1 = {
-    x: [0],  // Earth at the origin (0,0)
-    y: [0],
-    mode: 'markers',
-    type: 'scatter',
-    marker: { color: 'green', size: earthMarkerSize },
-    name: 'Earth (scaled)',
-};
+            // Plotly data structure
+            const trace1 = {
+                x: [0],  // Earth at the origin (0,0)
+                y: [0],
+                mode: 'markers',
+                type: 'scatter',
+                marker: { color: 'green', size: earthMarkerSize },
+                name: 'Earth (scaled)',
+            };
 
-const trace2 = {
-    x: xValues,
-    y: yValues,
-    mode: 'lines+markers',
-    type: 'scatter',
-    marker: { color: 'white', size: moonMarkerSize }, // Adjusted Moon marker size
-    name: 'Moon Trajectory',
-};
+            const trace2 = {
+                x: downsampledX,
+                y: downsampledY,
+                mode: 'lines+markers',
+                type: 'scatter',
+                marker: { color: 'white', size: moonMarkerSize }, // Adjusted Moon marker size
+                name: 'Moon Trajectory',
+            };
 
-// Layout settings
-const layout = {
-    title: 'Moon Trajectory Over Time',
-    xaxis: {
-        title: 'X (km)',
-        showgrid: true,
-        zeroline: true,
-    },
-    yaxis: {
-        title: 'Y (km)',
-        showgrid: true,
-        zeroline: true,
-    },
-    plot_bgcolor: 'black',
-    paper_bgcolor: 'black',
-    showlegend: true,
-    font: { color: 'white' },
-};
+            // Layout settings to focus on Earth at the center and ensure the Moon is visible
+            const layout = {
+                title: 'Moon Trajectory Over Time',
+                xaxis: {
+                    title: 'X (km)',
+                    showgrid: true,
+                    zeroline: true,
+                    range: [-moonDistance * 1.1, moonDistance * 1.1]  // Center Earth at origin, show moon's path
+                },
+                yaxis: {
+                    title: 'Y (km)',
+                    showgrid: true,
+                    zeroline: true,
+                    range: [-moonDistance * 1.1, moonDistance * 1.1]  // Center Earth at origin, show moon's path
+                },
+                plot_bgcolor: 'black',
+                paper_bgcolor: 'black',
+                showlegend: true,
+                font: { color: 'white' },
+            };
 
             const data = [trace1, trace2];
             Plotly.newPlot('plot', data, layout).then(function(gd) {
@@ -230,6 +235,7 @@ const layout = {
 
 </body>
 </html>
+
 
 
 
